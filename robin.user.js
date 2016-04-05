@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         parrot (color multichat for robin!)
 // @namespace    http://tampermonkey.net/
-// @version      2.65.alpha1
+// @version      2.65
 // @description  Recreate Slack on top of an 8 day Reddit project.
 // @author       dashed, voltaek, daegalus, vvvv, orangeredstilton, lost_penguin
 // @include      https://www.reddit.com/robin*
@@ -314,12 +314,12 @@
     Settings.addBool("force_scroll", "Force scroll to bottom", false);
     Settings.addBool("enableTabComplete", "Auto completes username when pressing tab", true);
     Settings.addBool("enableQuickTabNavigation", "Enable the shortcut to switch between tabs", true);
-    Settings.addBool("enableAdvancedNaviOptions", "Enables the advanced options to remap navigation keys, page will refresh on click", false, function() { location.reload(); });
-    if (enableAdvancedNaviOptions) {
-        Settings.addInput("quickTabNaviKeysChord", "<label>Change the key codes used for navigating between tabs<ul><li><b>WARNING: FOR ADVANCED USERS ONLY. DO NOT MODIFY</b></li><li>Specify a comma separated list of keys to be held down for tab navigation, the boolean comparators \"!\" and \"||\" and can be used to build basic logical expressions</li><li>See <a href='https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode' target='_new'>Mozilla.org's documentation</a> for list of key codes</li></ul></label>","17||224,16");
-        Settings.addInput("quickTabNaviKeyLeft","<label><ul><li>The key code for the final key to navigate left a tab</li></ul></label>","37");
-        Settings.addInput("quickTabNaviKeyRight","<label><ul><li>The key code for the final key to navigate right a tab</li></ul></label>","39");
-    }
+    Settings.addBool("enableAdvancedNaviOptions", "Enables the advanced options to remap navigation keys, page will refresh on click", false, function(){ location.reload(); });
+    /*if (enableAdvancedNaviOptions) {*/
+        Settings.addInput("quickTabNaviKeysChord", "<label>Change the key codes used for navigating between tabs<ul><li><b>WARNING: FOR ADVANCED USERS ONLY. DO NOT MODIFY</b></li><li>Specify a comma separated list of keys to be held down for tab navigation, the boolean comparators '!' and '||' and can be used to build basic logical expressions</li><li>See <a href='https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode' target='_blank'>Mozilla.org's documentation</a> for list of key codes</li></ul></label>","17||224,16");
+        Settings.addInput("quickTabNaviKeyLeft", "<label><ul><li>The key code for the final key to navigate left a tab</li></ul></label>","37");
+        Settings.addInput("quickTabNaviKeyRight", "<label><ul><li>The key code for the final key to navigate right a tab</li></ul></label>","39");
+    //}
     Settings.addInput("maxprune", "Max messages before pruning", "500");
     Settings.addInput("fontsize", "Chat font size", "12");
     Settings.addInput("fontstyle", "Font Style (default Consolas)", "");
@@ -1064,61 +1064,57 @@
         GOTO_BOTTOM = true;
     });
 
-    function generateKeyCodeEval () {
+    function generateKeyCodeEval() {
         if (enableAdvancedNaviOptions) {
             var splitChord = quickTabNaviKeysChord.split(",");
             
             //sanitise before eval
-            for (i=0; i < splitChord.length; i++)
+            for (i=0; i < splitChord.length; i++) {
                 splitChord[i] = splitChord[i].replace(/([^0-9\|&!])/g,'');
+            }
             
             joinedEval = "(e.keycode == (" + splitChord.join(")) && (e.keycode == (") + "))";
             
             return joinedEval;
         }
-        else 
+        else {
             return false; 
+        }
     }
     
     // ctrl + shift + (left | right)
     $(document).keydown(function(e) {
-    
         var lKeycode = 39;
         var rKeycode = 37;
+        
         if (!enableQuickTabNavigation) {
-            if !((e.metaKey || e.ctrlKey) && e.shiftKey)) 
+            if !((e.metaKey || e.ctrlKey) && e.shiftKey)) {
                 return;
+            }
         }
         else {          
-            if eval(!generateKeyCodeEval())
+            if eval(!generateKeyCodeEval()) {
                 return;
-                
+            }   
             lKeycode = quickTabNaviKeyLeft;
             rKeycode = quickTabNaviKeyRight;    
         }
             
-        
-        if (e.keyCode == rKeycode) {
-            // right channel
-
+        if (e.keyCode == rKeycode) { // right channel
             var newChanIdx = selectedChannel + 1;
 
-            if(newChanIdx == channelList.length) {
+            if (newChanIdx == channelList.length) {
                 newChanIdx = -1;
             }
-
             selectChannel(newChanIdx);
         }
 
-        if (e.keyCode == lKeycode) {
-            // left channel
-
+        if (e.keyCode == lKeycode) { // left channel
             var newChanIdx = selectedChannel - 1;
 
-            if(newChanIdx <= -2) {
+            if (newChanIdx <= -2) {
                 newChanIdx = channelList.length - 1;
             }
-
             selectChannel(newChanIdx);
         }
     });
