@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         parrot (color multichat for robin!)
 // @namespace    http://tampermonkey.net/
-// @version      2.53
+// @version      2.65.alpha1
 // @description  Recreate Slack on top of an 8 day Reddit project.
 // @author       dashed, voltaek, daegalus, vvvv, orangeredstilton, lost_penguin
 // @include      https://www.reddit.com/robin*
@@ -137,8 +137,8 @@
             $robinVoteWidget.prepend("<div class='addon'><div id='chatstats' class='robin-chat--vote' style='font-weight:bold;pointer-events:none;'></div></div>");
             $robinVoteWidget.prepend("<div class='addon'><div class='usercount robin-chat--vote' style='font-weight:bold;pointer-events:none;'></div></div>");
             $robinVoteWidget.prepend("<div class='addon'><div class='timeleft robin-chat--vote' style='font-weight:bold;pointer-events:none;'></div></div>");
-            $robinVoteWidget.prepend('<div class="addon"><div class="robin-chat--vote" id="openBtn">Open Settings</div></div>');
-
+            $robinVoteWidget.prepend('<div class="addon" id="openBtn_wrap" style="padding-top:-10px;"><div class="robin-chat--vote" id="openBtn" style="margin-left:0px;">Open Settings</div></div>');
+            $("#openBtn_wrap").prepend('<div class="robin-chat--sidebar-widget robin-chat--report" style="padding-top:0;text-align:center;font-size:15px;font-weight:bold;"><a target="_blank" href="https://github.com/5a1t/parrot"><b style="text-decoration: none; font-size: 18px; color: #000000;">Parrot<p></b>soKukunelits fork<b style="text-decoration: none; color: #000000;"> - </b>' + versionString + '</p></a></div>');
 
             // Setting container
             $(".robin-chat--sidebar").before(
@@ -218,32 +218,32 @@
                 settings[name] = defaultSetting;
             }
         },
-        
+
         addRadio: function addRadioSetting(name, description, items, defaultSettings, callback) {
             //items JSON format:
             //    {"id":[{"value":<string>,
             //            "friendlyName":<string>}]};
-            
+
             defaultSettings = settings[name] || defaultSettings;
-            
+
             $("#settingContent").append('<div id="settingsContainer-' + name + '" class="robin-chat--sidebar-widget robin-chat--notification-widget"><span style="font-weight: 300; letter-spacing: 0.5px; line-height: 15px; font-size:' + settings.fontsize + 'px;">' + description + '</span><br><br>');
             for (i in items.id) {
                 $("#settingsContainer-" + name).append('<label><input type="radio" name="settingsContainer-' + name + '" value="' + items.id[i].value + '"> ' + items.id[i].friendlyName + '</input></label><br>');
             }
             $("#settingsContainer-" + name).append('</div>');
-            
+
             if (settings[name] != undefined) {
                 $("input:radio[name='setting-" + name + "'][value='" + settings[name] + "']").prop("checked", true);
             }
             else {
                 $("input:radio[name='setting-" + name + "'][value='" + defaultSettings + "']").prop("checked", true);
             }
-            
+
             $("input:radio[name='setting-" + name + "']").on("click", function () {
                 settings[name] = $("input:radio[name='setting-" + name + "']:checked").val();
                 Settings.save(settings);
             });
-            
+
             if (callback) {
                 callback();
             }
@@ -294,19 +294,32 @@
     // Get version string (if available from script engine)
     var versionString = "";
     if (typeof GM_info !== "undefined") {
-        versionString = " - v" + GM_info.script.version;
+        versionString = "v" + GM_info.script.version;
     }
 
     Settings.setupUI($robinVoteWidget);
     var settings = Settings.load();
+
+    // bootstrap
+    tryHide();
 
     // Options begin
     Settings.addButton("settingContent", "update-script-button", "Update Parrot", function(){ window.open("https://github.com/5a1t/parrot/raw/master/robin.user.js?t=" + (+ new Date()), "_blank"); });
     Settings.addButton("robinChatInput", "clear-chat-button", "Clear Chat",  clearChat);
     Settings.addBool("hideVote", "Hide voting panel to prevent misclicks", false, tryHide);
     Settings.addBool("removeSpam", "Remove bot spam", true);
+    Settings.addInput("spamFilters", "<label>Custom Spam Filters<ul><li><b>Checkbox 'Remove bot spam' (above)</b></li><li>Comma-delimited</li><li>Spaces are NOT stripped</li></ul></label>", "spam example 1,John Madden");
     Settings.addBool("enableUnicode", "Allow unicode characters. Unicode is considered spam and thus are filtered out", false);
-    Settings.addBool("findAndHideSpam", "Remove messages that have been sent more than 3 times", true);
+    // Settings.addBool("findAndHideSpam", "Remove messages that have been sent more than 3 times", false);
+    Settings.addBool("force_scroll", "Force scroll to bottom", false);
+    Settings.addBool("enableTabComplete", "Auto completes username when pressing tab", true);
+    Settings.addBool("enableQuickTabNavigation", "Enable the shortcut to switch between tabs", true);
+    Settings.addBool("enableAdvancedNaviOptions", "Enables the advanced options to remap navigation keys, page will refresh on click", false, function() { location.reload(); })
+    if (enableAdvancedNaviOptions) {
+        Settings.addInput("quickTabNaviKeysChord", "<label>Change the key codes used for navigating between tabs<ul><li><b>WARNING: FOR ADVANCED USERS ONLY. DO NOT MODIFY</b></li><li>Specify a comma separated list of keys to be held down for tab navigation, the boolean comparators \"!\" and \"||\" and can be used to build basic logical expressions</li><li>See <a href='https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode' target='_new'>Mozilla.org's documentation</a> for list of key codes</li></ul></label>","17||224,16");
+        Settings.addInput("quickTabNaviKeyLeft","<label><ul><li>The key code for the final key to navigate left a tab</li></ul></label>","37");
+        Settings.addInput("quickTabNaviKeyRight","<label><ul><li>The key code for the final key to navigate right a tab</li></ul></label>","39");
+    }
     Settings.addInput("maxprune", "Max messages before pruning", "500");
     Settings.addInput("fontsize", "Chat font size", "12");
     Settings.addInput("fontstyle", "Font Style (default Consolas)", "");
@@ -317,11 +330,10 @@
     Settings.addBool("tabChanColors", "Use color on regular channel messages in tabs", true);
     Settings.addBool("twitchEmotes", "<a href='https://twitchemotes.com/filters/global' target='_blank'>Twitch emotes</a>", false);
     Settings.addBool("timeoutEnabled", "Reload page after inactivity timeout", true);
-    Settings.addInput("spamFilters", "<label>Custom Spam Filters<ul><li>Comma-delimited</li><li>Spaces are NOT stripped</li></ul></label>", "spam example 1,John Madden");
-    
+
     $("#settingContent").append("<div class='robin-chat--sidebar-widget robin-chat--notification-widget'><label id='blockedUserContainer'>Muted Users (click to unmute)</label>");
     $("#blockedUserContainer").append("<div id='blockedUserList' class='robin-chat--sidebar-widget robin-chat--user-list-widget'></div>");
-    
+
     $("#settingContent").append('<div class="robin-chat--sidebar-widget robin-chat--report" style="text-align:center;"><a target="_blank" href="https://github.com/5a1t/parrot">parrot' + versionString + '</a></div>');
     // Options end
     // Settings end
@@ -482,7 +494,7 @@
 
 
 
-        if (settings.findAndHideSpam) {
+        if (false && settings.findAndHideSpam) {
             // skips over ones that have been hidden during this run of the loop
             $('.robin--user-class--user .robin-message--message:not(.addon--hide)').each(function() {
                 var $this = $(this);
@@ -615,6 +627,10 @@
     $.getJSON("https://twitchemotes.com/api_cache/v2/global.json", function( data ) {
         emotes = data.emotes;
         console.log(emotes);
+
+        for(var prop in emotes){
+            emotes[prop.toLowerCase()] = emotes[prop];
+        }
     });
 
     // credit to wwwroth for idea (notification audio)
@@ -764,8 +780,9 @@
                     var split = messageText.split(' ');
                     var changes = false;
                     for (var i=0; i < split.length; i++) {
-                        if(emotes.hasOwnProperty(split[i])){
-                            split[i] = "<img src=\"https://static-cdn.jtvnw.net/emoticons/v1/"+emotes[split[i]].image_id+"/1.0\">";
+                        var key = (split[i]).toLowerCase();
+                        if(emotes.hasOwnProperty(key)){
+                            split[i] = "<img src=\"https://static-cdn.jtvnw.net/emoticons/v1/"+emotes[key].image_id+"/1.0\">";
                             changes = true;
                         }
                     }
@@ -806,7 +823,7 @@
     function doScroll()
     {
 
-        if(GOTO_BOTTOM) {
+        if(GOTO_BOTTOM || settings.force_scroll) {
             robinChatWindow.scrollTop(robinChatWindow[0].scrollHeight);
         }
     }
@@ -840,7 +857,10 @@
 
     function tabAutoComplete(e)
     {
-        if ((e.keyCode || e.which) != 9) return;
+        if (!enableTabComplete && ((e.keyCode || e.which) != 9)) return;
+
+        e.preventDefault();
+        e.stopPropagation();
 
         var source = $("#robinMessageText").val();
         var sourceAlt = $("#robinMessageTextAlt").val();
@@ -850,6 +870,8 @@
             source = source.substring(chanName.length).trim();
 
         $("#robinMessageTextAlt").val(source);
+
+        return false;
     }
 
     var myObserver = new MutationObserver(mutationHandler);
@@ -947,7 +969,20 @@
                     }
                 }
 
-                if(settings.filterChannel) {
+                // DO NOT REMOVE THIS LINE
+                // convertTextToSpecial(messageText, jq[0]);
+
+                // Move channel messages to channel tabs
+                if (results_chan.has)
+                    moveChannelMessage(results_chan.index, jq[0], userIsMentioned);
+
+                // DO NOT REMOVE THIS LINE
+                convertTextToSpecial(messageText, jq[0]);
+
+                if (selectedChannel >= 0 && thisUser.trim() == '[robin]')
+                    moveChannelMessage(selectedChannel, jq[0]);
+
+                if (settings.filterChannel) {
                     if(results_chan.has) {
                         messageText = messageText.substring(results_chan.name.length).trim();
                         $message.text(messageText);
@@ -958,18 +993,8 @@
                         .insertAfter($timestamp);
                 }
 
-                // TODO: not a real fix
+                // DO NOT REMOVE THIS LINE
                 convertTextToSpecial(messageText, jq[0]);
-
-                // Move channel messages to channel tabs
-                if (results_chan.has) {
-                    moveChannelMessage(results_chan.index, jq[0], userIsMentioned);
-                }
-
-                if(selectedChannel >= 0 && thisUser.trim() == '[robin]') {
-                    moveChannelMessage(selectedChannel, jq[0]);
-                }
-
 
                 findAndHideSpam();
                 doScroll();
@@ -1039,14 +1064,41 @@
         GOTO_BOTTOM = true;
     });
 
+    function generateKeyCodeEval () {
+        if (enableAdvancedNaviOptions) {
+            var splitChord = quickTabNaviKeysChord.split(",");
+            
+            //sanitise before eval
+            for (i=0; i < splitChord.length; i++)
+                splitChord[i] = splitChord[i].replace(/([^0-9\|&!])/g,'');
+            
+            joinedEval = "(e.keycode == (" + splitChord.join(")) && (e.keycode == (") + "))";
+            
+            return joinedEval;
+        }
+        else 
+            return false; 
+    }
+    
     // ctrl + shift + (left | right)
     $(document).keydown(function(e) {
-
-        if(!((e.metaKey || e.ctrlKey) && e.shiftKey)) {
-            return;
+    
+        var lKeycode = 39;
+        var rKeycode = 37;
+        if (!enableQuickTabNavigation) {
+            if !((e.metaKey || e.ctrlKey) && e.shiftKey)) 
+                return;
         }
-
-        if (e.keyCode == 39) {
+        else {          
+            if eval(!generateKeyCodeEval())
+                return;
+                
+            lKeycode = quickTabNaviKeyLeft;
+            rKeycode = quickTabNaviKeyRight;    
+        }
+            
+        
+        if (e.keyCode == rKeycode) {
             // right channel
 
             var newChanIdx = selectedChannel + 1;
@@ -1058,7 +1110,7 @@
             selectChannel(newChanIdx);
         }
 
-        if (e.keyCode == 37) {
+        if (e.keyCode == lKeycode) {
             // left channel
 
             var newChanIdx = selectedChannel - 1;
@@ -1070,6 +1122,7 @@
             selectChannel(newChanIdx);
         }
     });
+    }
 
 GM_addStyle(" \
     .robin--username { \
