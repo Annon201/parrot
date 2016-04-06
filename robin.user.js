@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         parrot (color multichat for robin!)
 // @namespace    http://tampermonkey.net/
-// @version      2.91
+// @version      2.96
 // @description  Recreate Slack on top of an 8 day Reddit project.
 // @author       dashed, voltaek, daegalus, vvvv, orangeredstilton, lost_penguin, AviN456, Annon201
 // @include      https://*.reddit*.com
@@ -74,19 +74,33 @@
         $("input[name='setting-see-only-channels']").change(function() {
 
             var newVal = $(this).prop('checked');
-            $("input[name='setting-filterChannel']").prop( "checked", newVal);
+            $("input[name='setting-filterChannel']").prop("checked", newVal);
 
             settings.filterChannel = newVal;
             Settings.save(settings);
 
             buildDropdown();
+            updateMessage();
         });
 
         $("input[name='setting-filterChannel']").change(function() {
             $("input[name='setting-see-only-channels']").prop("checked", $(this).prop('checked'));
 
             buildDropdown();
+            updateMessage();
         })
+    }
+
+    function updateUserPanel(){
+	console.log("in updatepanel");
+	$(".robin-room-participant").each( function(){
+		lastseen = userExtra[$(this).text().trim()];
+		if(lastseen){
+			$( this ).find(".robin--username").nextAll().remove();
+			$( this ).find(".robin--username").after("<span class=\"robin-message--message\"style=\"font-size: 10px;\"> &nbsp;" + lastseen + "</span>");
+		}
+	});
+	
     }
 
     // Utils
@@ -182,6 +196,29 @@
             return 0;
         }
     }
+
+
+  var UserExtra = {
+
+        load: function loadSetting() {
+            var userExtra = localStorage.getItem('parrot-user-extra');
+
+            try {
+                userExtra = userExtra ? JSON.parse(userExtra) : {};
+            } catch(e) {}
+
+            userExtra = userExtra || {};
+
+            return userExtra;
+        },
+
+        save: function saveSetting(userExtra) {
+            localStorage.setItem('parrot-user-extra', JSON.stringify(userExtra));
+        }
+
+
+   }
+
 
     var Settings = {
         setupUI: function() {
@@ -541,7 +578,20 @@
 
     Settings.setupUI($robinVoteWidget);
     var settings = Settings.load();
+    var userExtra = UserExtra.load();
+    startSaveUserExtra();
 
+    function tryStoreUserExtra(){
+
+	console.log("storing lastseens");
+	UserExtra.save(userExtra);
+    }	
+
+    var userExtraInterval = 0;
+
+    function startSaveUserExtra() {
+        userExtraInterval = setInterval(tryStoreUserExtra, 60*1000*5);
+    }
     // bootstrap
     tryHide();
 
@@ -1030,6 +1080,7 @@
 
     function setChannelSelected(tab, box, select)
     {
+
         if (select)
         {
             tab.attr("class", "robin-chan-tab-selected");
@@ -1135,6 +1186,11 @@
         return dropdownChannel();
     }
 
+    function updateTextCounter()
+    {
+        $("#textCounterDisplayAlt").text(String(Math.max(140 - Math.floor($("#robinMessageText").val().length), 0)));
+    }
+
     //
     // Update the message prepared for sending to server
     //
@@ -1153,6 +1209,8 @@
             dest.val(source);
         else
             dest.val(chanPrefix + source);
+
+        updateTextCounter();
     }
 
     var pastMessageQueue = [];
@@ -1200,11 +1258,25 @@
         var source = $("#robinMessageText").val();
         var sourceAlt = $("#robinMessageTextAlt").val();
         var chanName = selChanName();
+        var namePart = "";
 
         // Tab - Auto Complete
         if (settings.enableTabComplete && key == 9 && source.toLowerCase().startsWith(chanName.toLowerCase())) {
-            sourceAlt = source.substring(chanName.length).trim();	      console.log(sourceAlt);
-            $("#robinMessageTextAlt").val(sourceAlt);
+            sourceAlt = source.substring(chanName.length).trim();
+            var space=sourceAlt.lastIndexOf(" ");
+            namePart = sourceAlt.substring(space).trim();
+            sourceAlt = sourceAlt.substring(0, sourceAlt.lastIndexOf(" "));
+            list = config.robin_user_list;
+           $(list).each(function(){
+                if(this.name.indexOf(namePart) == 0){
+                    namePart=(this.name);
+                    if(space!=-1)namePart=" "+namePart;
+                    return true;
+                }
+            });
+            $("#robinMessageTextAlt").val(sourceAlt+namePart);
+            sourceAlt=chanName+" "+sourceAlt;
+            $("#robinMessageText").val(sourceAlt+namePart);
             return;
         }
 
@@ -1241,6 +1313,9 @@
     $("#robinChatMessageList").each(function() {
         myObserver.observe(this, { childList: true });
     });
+
+    var counter=0.0;
+    var countdown=0;
     function mutationHandler(mutationRecords) {
         mutationRecords.forEach(function(mutation) {
             var jq = $(mutation.addedNodes);
@@ -1260,7 +1335,13 @@
                 var $message = $(jq[0].children && jq[0].children[2]);
                 var messageText = $message.text();
 
-
+		var options = {
+   			 weekday: "long", year: "numeric", month: "short",
+    			 day: "numeric", hour: "2-digit", minute: "2-digit"
+		};
+		datestring = new Date().toLocaleTimeString("en-us", options);
+		userExtra[$user.text()] = datestring;
+		updateUserPanel();
 
                 var exclude_list = String(settings.channel_exclude).split(",");
                 var results_chan_exclusion = hasChannelFromList(messageText, exclude_list, true);
@@ -1340,6 +1421,15 @@
                         }
                     }
                 }
+                if(thisUser.indexOf("[robin]") !=-1){
+                    if($message.text().indexOf("RATELIMIT") != -1){
+                       var rltime = $.trim($message.text().substr(54));
+                       rltime = parseInt(rltime.substring(0, rltime.indexOf(' ')))+1;
+                       if(rltime>10)rltime=1;
+                        console.log(rltime.toString());
+                       countdown=rltime;
+                   }
+                }
 
                 // DO NOT REMOVE THIS LINE
                 // convertTextToSpecial(messageText, jq[0]);
@@ -1371,8 +1461,22 @@
         });
     }
 
+    function countTimer(){
+        counter+=0.5;
+        if(countdown>1){
+            countdown-=0.5;
+            $('#sendBtn').html("Chat in: "+parseInt(countdown));
+        }else if(countdown==1){
+            $('#sendBtn').html("Send Message");
+
+            countdown=0;
+        }
+
+    }
     setInterval(update, 10000);
     update();
+
+    setInterval(countTimer, 500);
 
     var flairColor = [
         '#e50000', // red
@@ -1412,6 +1516,11 @@
 
     // Message input box (hidden)
     $(".text-counter-input").attr("id", "robinMessageText");
+
+    $(".text-counter-display")
+      .css("display", "none")
+      .after('<span id="textCounterDisplayAlt">140</span>');
+
     $("#robinSendMessage").append('<input type="text" id="robinMessageTextAlt" class="c-form-control text-counter-input" name="messageAlt" autocomplete="off" maxlength="140" required="">');
     $("#robinMessageText").css("display", "none");
     // Alternate message input box (doesn't show the channel prefixes)
