@@ -1,5 +1,7 @@
 # Parrot - Robin Grow Fork, modified for comma separated multi-channel listening, colors, channel selection, Twitch Emotes, and more!
 
+[![Join the chat at https://gitter.im/5a1t/parrot](https://badges.gitter.im/5a1t/parrot.svg)](https://gitter.im/5a1t/parrot?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 **THIS FORK WAS MADE WITHIN soKukuneli**
 
 This is not the main branch! But it has some great additional features!
@@ -34,8 +36,10 @@ http://piratepad.net/Zg3MJL40Qh
 9. Option to enable unicode!
 10. Fancy easy update button!
 10. Global username mentions.
-11. Twitch.tv emotes!
+11. Twitch.tv & BTTV emotes!
 12. Tab-Based Chatting!
+13. Sent Message History!
+14. Minified version of the automatic standings board.
 
 ## Updates
 
@@ -63,7 +67,10 @@ http://piratepad.net/Zg3MJL40Qh
     2.2: Tabbed chat! Switched the name to parrot around this time. Even more code cleanup (voltaek).
     2.3: Moved settings button, new stats thingy when buttons are hidden (dashed).
     2.4: Channel switching hotkeys, you can use slash commands in tabs (dashed, lost_penguin).
+    2.5: Optimizations and fixes, rearranged settings (dashed, Annon201)
+    2.6: Message history w/ up and down arrow (LTAcosta). New title (dashed). Leaderboard reporting (Unimatrix0).
+    2.7: BTTV emotes (anadee). Sent message history setting (LTAcosta). Standings view. Reorganized checkboxes.
 
 ## Screenshots
 
-![1](https://lambda.sx/HIx.png) ![2](https://lambda.sx/g2S.png)
+![1](https://lambda.sx/tfr.png) ![2](https://lambda.sx/tbi.png) ![3](https://lambda.sx/3vR.png) ![4](https://lambda.sx/IoR.png) ![5](https://lambda.sx/blO.png)
