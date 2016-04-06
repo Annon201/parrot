@@ -1,23 +1,17 @@
 // ==UserScript==
 // @name         parrot (color multichat for robin!)
 // @namespace    http://tampermonkey.net/
-// @version      2.91-UNSAFE
+// @version      2.91
 // @description  Recreate Slack on top of an 8 day Reddit project.
 // @author       dashed, voltaek, daegalus, vvvv, orangeredstilton, lost_penguin, AviN456, Annon201
-// @include      https://*
-// @include      http://*
+// @include      https://*.reddit*.com
+// @include      http://*.reddit*.com
 // @updateURL    https://github.com/5a1t/parrot/raw/master/robin.user.js
 // @require       http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
 // @grant   GM_getValue
 // @grant   GM_setValue
 // @grant   GM_addStyle
-// @grant   unsafeWindow
 // ==/UserScript==
-
-console.log("This is an UNSAFE experimental build, do not merge this commit into main branch")
-
-debugger
-
 
 (function() {
     // hacky solutions
