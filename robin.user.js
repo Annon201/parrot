@@ -1547,12 +1547,9 @@
                 splitChord[i] = splitChord[i].replace(/([^0-9\|&!])/g,'');
             }
 
-            joinedEval = "(e.keycode == (" + splitChord.join(")) && (e.keycode == (") + "))";
+            joinedEval = "((e.keyValue == " + splitChord.join(") && (e.keyValue == ") + "))";
 
             return joinedEval;
-        }
-        else {
-            return false;
         }
     }
 
@@ -1565,19 +1562,17 @@
         var rKeycode = 39; // set the keycodes to default
 
         if (settings.enableAdvancedNaviOptions) { // are we using advanced settings
-            if (eval(generateKeyCodeEval())) { // hopefully this eval'd right
+            if (eval(generateKeyCodeEval()) == false) { // hopefully this eval'd right
                 return;
             }
-
             lKeycode = settings.quickTabNaviKeyLeft; // if we made it this far set the new keycodes
             rKeycode = settings.quickTabNaviKeyRight;
         }
-        else { // using original keycodes
-            if (!((e.metaKey || e.ctrlKey) && e.shiftKey)) {
+        else { // using original keycodes 
+            if (((e.metaKey || e.ctrlKey) && e.shiftKey) == false) {
                 return;
             }
         }
-
 
 	var key = e.keyCode ? e.keyCode : e.charCode
 	key = key || e.which;
