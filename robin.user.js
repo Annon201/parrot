@@ -325,6 +325,111 @@
                 callback();
             }
         },
+        
+        list:{
+            //items JSON format:
+            //    {"id":[{"value":<string>,
+            //            "friendlyName":<string>,
+            //            "selected":<bool>}]
+            //    };
+            //
+            //options JSON format:    
+            //      {"size":15,            ** listbox turns into a combobox when size=1
+            //       "description":"im a listbox ;)",
+            //       "multiSelect":false
+            //      };
+            
+            Create: function generateSettingsListBoxObject(name, options, callback) {
+                        var currListID = "settingsContainer-" + name;
+                                  
+                        $("#settingContent").append('<div id="' + currListID + '" class="robin-chat--sidebar-widget robin-chat--notification-widget"><span style="font-weight: 300; letter-spacing: 0.5px; line-height: 15px; font-size:' + settings.fontsize + 'px;">' + options.description + '</span><br><br>');
+                        
+                        $("#" + currListID).append('<select id="listBox-' + name + '" ' + (options.multiSelect ? 'MULTIPLE ' : '') +  'size=' + options.size + "></select></div>");
+
+                        if (callback) {
+                            callback();
+                        }
+                    },
+                        
+            Add:    function addItemsToList(name, items, callback, indexStart) {
+                        var itemList = settings[name].Items;
+                        var selection = [];
+                        
+                        for (i in items.count)
+                            itemList.splice(indexStart + i, 0, items[i]);
+                            
+                        $("#listBox-" + name).empty();
+                        
+                        jQuery.map(itemList, function populateList(itemMap, itemIndex){
+                                $("#listBox-" + name).append("<option value='" + itemMap.value + "'> " + itemMap.friendlyName + '</option>');
+                                
+                                if (itemMap.selected) 
+                                    selection.push(itemMap.value);
+                        });
+                        
+                        saveItemsToSettings(name,itemList);
+                        
+                        if (callback) {
+                            callback();
+                        }
+                    },
+            
+            Remove: function removeItemsFromList(name, items, index, count, callback) {
+                        var itemList = settings[name].Items;
+                        
+                        var itemsToRemove = [];
+                        
+                        jQuery.map(items, function populateList(itemMap,itemIndex) {
+                            itemsToRemove.push(itemMap);
+                        });
+                        
+                        jQuery.grep(itemList, function destroyFromList(itemMap, itemIndex) {
+                            $("<option>").remove(":contains('" + itemMap + "')");
+                            itemList.splice(itemIndex,1);
+                        });
+                          
+                        saveItemsToSettings(name,itemList);
+                        
+                        if (callback) {
+                            callback();
+                        }
+                    },
+                        
+            Load:   function loadItemsIntoList(name, populateListBox, callback) {
+                        var itemList = settings[name].Items;
+                        var options = settings[name].Options;
+                        
+                        var selection = []; 
+                        
+                        $("#listBox-" + name).empty();
+                        
+                        jQuery.map(itemList,function populateList(items, index){
+                            $("#listBox-" + name).append("<option value='" + items.value + "'> " + items.friendlyName + "</option>");
+                            if (items.selected) 
+                                selection.push(items.value);
+                        });
+                        
+                        return(items, options);
+                        
+                        if (callback) {
+                            callback();
+                        }
+                    },
+            
+            Save:   function saveItemsToSettings(name, items, options, callback) {
+                        settings[name].Items = items;
+                        
+                        if (options) 
+                            settings[name].options = options;
+                        
+                        Settings.save(settings[name]);
+                        
+                        if (callback) {
+                            callback();
+                        }
+                    }
+            
+        },
 
         addInput: function addInputSetting(name, description, defaultSetting, callback) {
             defaultSetting = settings[name] || defaultSetting;
