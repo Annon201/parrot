@@ -1545,13 +1545,20 @@
             //sanitise before eval
             for (i=0; i < splitChord.length; i++) {
                 splitChord[i] = splitChord[i].replace(/([^0-9\|&!])/g,'');
+                if (splitChord[i].includes("||") splitChord[i] = "(" + splitChord[i] + ")";
             }
-
-            joinedEval = "((e.keyValue == " + splitChord.join(") && (e.keyValue == ") + "))";
-
+            
+            joinedEval = "((e.keyValue == ";
+            joinedEval += splitChord[0];
+            for (i=1; i < splitChord.length; i++) {
+                joinedEval += ") && (";
+                joinedEval += "e.keyValue == ";
+                joinedEval += splitChord[i];
+            }
+            joinedEval += "))";
             return joinedEval;
         }
-    }
+    };
 
     $(document).keydown(function(e) {
         if (!settings.enableQuickTabNavigation) return; // Is quicknav enabled
