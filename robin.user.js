@@ -6,7 +6,8 @@
 // @author       dashed, voltaek, daegalus, vvvv, orangeredstilton, lost_penguin, AviN456, Annon201
 // @include      https://www.reddit.com/robin*
 // @updateURL    https://github.com/5a1t/parrot/raw/master/robin.user.js
-// @require       http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
+// @require      http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
+// @require      https://raw.githubusercontent.com/simsalabim/sisyphus/master/sisyphus.min.js
 // @grant   GM_getValue
 // @grant   GM_setValue
 // @grant   GM_addStyle
