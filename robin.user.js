@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         parrot (color multichat for robin!)
 // @namespace    http://tampermonkey.net/
-// @version      3.48
+// @version      3.46
 // @description  Recreate Slack on top of an 8 day Reddit project.
 // @author       dashed, voltaek, daegalus, vvvv, orangeredstilton, lost_penguin, AviN456, Annon201
 // @include      https://www.reddit.com/robin*
@@ -447,7 +447,7 @@
                         $(this).remove();
                     }});
                 });
-
+                
                 $("#standingsTableReddit").html(decoded);
             },
             dataType: 'xml'
@@ -1315,29 +1315,66 @@
     function onMessageBoxSubmit()
     {
         var message =  $("#robinMessageTextAlt").val();
-        if(message.indexOf("!cipher") == 0 || message.indexOf("!c") == 0)
-        {
-
-            var encryption_cue = message.indexOf("!cipher") == 0 ? "!cipher" : "!c";
-
-            var mes2 = $.trim(message.substr(encryption_cue.length));
-            //var atWho = $.trim(mes2.substring(0,mes2.indexOf(" ")));
-            //mes2 = $.trim(mes2.substring(mes2.indexOf(" ")));
-
-            var key = aesjs.util.convertStringToBytes(String(settings['cipherkey']));
-            var textBytes = aesjs.util.convertStringToBytes(mes2);
-            var aesCtr = new aesjs.ModeOfOperation.ctr(key);
-            var encryptedBytes = aesCtr.encrypt(textBytes);
-            var result = encryptedBytes.map(function (x) {
-                return x.toString(36);
-            });
-            mes2=result.toString();
-            var chanName = selChanName();
-             $("#robinMessageTextAlt").val(chanName + "em:"+mes2);
-             $("#robinMessageText").val(chanName + "em:"+mes2);
+        
+        if (message.substr(0,1) != "!") {
+            updatePastMessageQueue();
+            $("#robinMessageTextAlt").val("");
+            return; /exit function if it doesnt start with '!'
         }
+        
+        var command = message.split(" ",1);
+        var mes2 = $.trim(message.substr(command.length));
+        
+        switch(command) {
+        	case "!cipher":
+        	case "!c":
+        	    var mes2 = $.trim(message.substr(8));
+                //var atWho = $.trim(mes2.substring(0,mes2.indexOf(" ")));
+                //mes2 = $.trim(mes2.substring(mes2.indexOf(" ")));
+    
+                var key = aesjs.util.convertStringToBytes(String(settings['cipherkey']));
+                var textBytes = aesjs.util.convertStringToBytes(mes2);
+                var aesCtr = new aesjs.ModeOfOperation.ctr(key);
+                var encryptedBytes = aesCtr.encrypt(textBytes);
+                var result = encryptedBytes.map(function (x) {
+                    return x.toString(36);
+                });
+                mes2=result.toString();
+                var chanName = selChanName();
+                 $("#robinMessageTextAlt").val(chanName + "<Cipher> "+mes2);
+                 $("#robinMessageText").val(chanName + "<Cipher> "+mes2);
+                 break;
+                 
+            case "!msg":
+            case "!m":
+            case "!pm":
+                var concatLen = 5 + toUser.length + 1;
+        	
+            	var toUser = message.Split(" ")[1];
+            	var msgSubject = "Message from Robin";
+            	var msgContent = message.slice(concatLen);
+            	
+            	redditPMUser(toUser, msgSubject, msgContent);
+            	break;
+        }
+        
         updatePastMessageQueue();
         $("#robinMessageTextAlt").val("");
+    }
+    
+    function redditPMUser(userName, subject, message)
+    {
+            var URL = "https://www.reddit.com/message/compose/?to=";
+        	
+        	URL += toUser
+        	
+        	URL += "&subject=";
+        	URL += subject.encodeURIComponent
+        	
+        	URL += "&message=";
+        	URL += message.encodeURLComponent
+        	
+        	GM_openInTab(URL);
     }
 
     function onMessageBoxKeyUp(e)
@@ -1439,8 +1476,8 @@
 
 
                 var chanName = selChanName();
-                var plainMessage= messageText.replace(chanName+"em:",'');
-                if(messageText.indexOf(chanName + "em:")==0){
+                var plainMessage= messageText.replace(chanName+"<Cipher> ",'');
+                if(messageText.indexOf(chanName + "<Cipher>")==0){
                     var key = aesjs.util.convertStringToBytes(String(settings['cipherkey']));
                     var aesCtr = new aesjs.ModeOfOperation.ctr(key);
                     var hexList = plainMessage.split(",");
@@ -1451,8 +1488,8 @@
                     var decryptedBytes = aesCtr.decrypt(textBytes);
                     // Convert our bytes back into text
                     var decryptedText = aesjs.util.convertBytesToString(decryptedBytes);
-                    messageText = messageText.replace(textBytes, decryptedText);
-                    $(jq[0]).find('.robin-message--message').text(chanName+"<Decrypted message> "+decryptedText);
+                    messageText = decryptedText;
+                    $(jq[0]).find('.robin-message--message').text(chanName+"<Cipher:--> "+decryptedText);
                 }
 
 				datenow = new Date();
