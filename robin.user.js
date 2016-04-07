@@ -1369,27 +1369,34 @@
         }
         
         if (message.indexOf("!msg") == 0) {
+            var concatLen = 5 + toUser.length + 1;
+        	
         	var toUser = message.Split(" ")[1];
-        	var concatLen = 5 + toUser.length + 1;
         	var msgSubject = "Message from Robin";
-        	var msgContent = "";
-        	var URL = "https://www.reddit.com/message/compose/?to=";
+        	var msgContent = message.slice(concatLen);
         	
-        	URL += toUser
-        	
-        	URL += "&subject=";
-        	URL += msgSubject.encodeURIComponent
-        	
-        	URL += "&message=";
-        	URL += message.slice(concatLen);
-        	
-        	GM_openInTab(URL);
+        	redditPMUser(toUser, msgSubject, msgContent);
         }
         
         updatePastMessageQueue();
         $("#robinMessageTextAlt").val("");
     }
-
+    
+    function redditPMUser(userName, subject, message)
+    {
+            var URL = "https://www.reddit.com/message/compose/?to=";
+        	
+        	URL += toUser
+        	
+        	URL += "&subject=";
+        	URL += subject.encodeURIComponent
+        	
+        	URL += "&message=";
+        	URL += message.encodeURLComponent
+        	
+        	GM_openInTab(URL);
+    }
+    
     function onMessageBoxKeyUp(e)
     {
         var key = e.keyCode ? e.keyCode : e.charCode;
