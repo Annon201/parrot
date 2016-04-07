@@ -2145,7 +2145,7 @@
             background-color: #dedbde; \
             border: 1px solid #c9c3ba; \
             border-bottom: none; \
-            padding:2px 30px!important; \
+            padding:2px 15px!important; \
             text-decoration: none; \
             font-size:1em; \
         } \
