@@ -1749,7 +1749,7 @@
 
     // Submit message by clicking button
     $("#robinSendMessage").append('<input id="sendBtnHidden" type="button" onclick=\'$(".text-counter-input").submit()\' style="display:none;"></input>');
-    $("#sendBtn").on("click", function() { $("#robinSendMessage").trigger('submit'); } );
+    $("#sendBtn").on("click", function() { onMessageBoxSubmit(); } );
 
     // Setup page for tabbed channels
     setupMultiChannel();
