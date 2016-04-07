@@ -1327,42 +1327,44 @@
         $("#robinMessageTextAlt").val("");
     }
     
-    function parrotCommand(command, value)
+    function parrotCommand(pTextCommand, pTextValue)
     {
-        switch(command) {
+        switch(pTextCommand) {
         	case "!cipher":
         	case "!c":
                 //var atWho = $.trim(value.substring(0,value.indexOf(" ")));
                 //value = $.trim(value.substring(value.indexOf(" ")));
     
                 var key = aesjs.util.convertStringToBytes(String(settings['cipherkey']));
-                var textBytes = aesjs.util.convertStringToBytes(value);
+                var textBytes = aesjs.util.convertStringToBytes(pTextValue);
                 var aesCtr = new aesjs.ModeOfOperation.ctr(key);
                 var encryptedBytes = aesCtr.encrypt(textBytes);
                 var result = encryptedBytes.map(function (x) {
                     return x.toString(36);
                 });
-                value=result.toString();
+                pTextValue=result.toString();
                 var chanName = selChanName();
-                 $("#robinMessageTextAlt").val(chanName + "<Cipher> "+value);
-                 $("#robinMessageText").val(chanName + "<Cipher> "+value);
-                 break;
+                 $("#robinMessageTextAlt").val(chanName + "<Cipher> "+pTextValue);
+                 $("#robinMessageText").val(chanName + "<Cipher> "+pTextValue);
+                 return;
                  
             case "!msg":
             case "!m":
             case "!pm":
+            	var toUser = pTextValue.Split(" ",2)[1];
+            	
                 var concatLen = 5 + toUser.length + 1;
-        	
-            	var toUser = value.Split(" ",2)[1];
+        
             	var msgSubject = "Message from Robin";
-            	var msgContent = $.trim(value.concat(concatLen));
+            	var msgContent = $.trim(pTextValue.concat(concatLen));
             	
             	redditPMUser(toUser, msgSubject, msgContent);
-            	break;
+            	return;
+            	
+            case default:
+                return;
         }
-        updatePastMessageQueue();
-        $("#robinMessageText").val("");
-        $("#robinMessageTextAlt").val("");
+	
     }
     
     function redditPMUser(userName, PMsubject, PMmessage)
