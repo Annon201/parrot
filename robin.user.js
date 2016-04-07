@@ -1324,7 +1324,7 @@
             console.log(value);
             parrotCommand(command, value);
         }
-        console.log(exit switch);
+        console.log("exit switch");
         updatePastMessageQueue();
         $("#robinMessageTextAlt").val("");
     }
@@ -1345,6 +1345,7 @@
     }
     
     function parrotCommand(pCommand, pMessage) {
+        
         switch(pCommand) {
         	case "!cipher":
         	case "!c":
@@ -1381,6 +1382,8 @@
                 $("#robinMessageText").val("");
             	
             	break;
+            case default:
+                break;
         }
     }
 
