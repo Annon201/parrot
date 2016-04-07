@@ -1317,7 +1317,7 @@
         var message =  $("#robinMessageTextAlt").val();
         
         if (message.substr(0,1) == "!") {
-            var command = message.split(" ", 1);
+            var command = message.split(" ", 2)[1];
             var value = $.trim(message.substr(command.length));
             parrotCommand(command, value);
         }
@@ -1353,7 +1353,7 @@
             case "!pm":
                 var concatLen = 5 + toUser.length + 1;
         	
-            	var toUser = value.Split(" ",1);
+            	var toUser = value.Split(" ",2)[1];
             	var msgSubject = "Message from Robin";
             	var msgContent = $.trim(value.concat(concatLen));
             	
