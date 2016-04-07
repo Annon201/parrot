@@ -1352,7 +1352,7 @@
                 //var mes2 = $.trim(message.substr(parrotCommand.length));
                 //var atWho = $.trim(mes2.substring(0,mes2.indexOf(" ")));
                 //mes2 = $.trim(mes2.substring(mes2.indexOf(" ")));
-                console.log(cipher);
+                console.log("cipher");
     
                 var key = aesjs.util.convertStringToBytes(String(settings['cipherkey']));
                 var textBytes = aesjs.util.convertStringToBytes(pMessage);
