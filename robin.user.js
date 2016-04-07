@@ -1368,7 +1368,7 @@
              $("#robinMessageText").val(chanName + "<Cipher> "+mes2);
         }
         
-        if (message.indexOf("/msg") == 0) {
+        if (message.indexOf("!msg") == 0) {
         	var toUser = message.Split(" ")[1];
         	var concatLen = 5 + toUser.length + 1;
         	var msgSubject = "Message from Robin";
