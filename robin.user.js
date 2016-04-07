@@ -1317,9 +1317,9 @@
         var message =  $("#robinMessageTextAlt").val();
         
         if (message.substr(0,1) == "!") {
-            var command = message.split(" ",1);
+            var command = message.split(" ", 1);
             var value = $.trim(message.substr(command.length));
-            parrotCommand(command, value)
+            parrotCommand(command, value);
         }
         
         updatePastMessageQueue();
@@ -1353,28 +1353,31 @@
             case "!pm":
                 var concatLen = 5 + toUser.length + 1;
         	
-            	var toUser = value.Split(" ")[1];
+            	var toUser = value.Split(" ",1);
             	var msgSubject = "Message from Robin";
-            	var msgContent = value.concat(concatLen);
+            	var msgContent = $.trim(value.concat(concatLen));
             	
             	redditPMUser(toUser, msgSubject, msgContent);
             	break;
         }
+        updatePastMessageQueue();
+        $("#robinMessageText").val("");
+        $("#robinMessageTextAlt").val("");
     }
     
-    function redditPMUser(userName, subject, message)
+    function redditPMUser(userName, PMsubject, PMmessage)
     {
-            var URL = "https://www.reddit.com/message/compose/?to=";
-        	
-        	URL += toUser
-        	
-        	URL += "&subject=";
-        	URL += subject.encodeURIComponent
-        	
-        	URL += "&message=";
-        	URL += message.encodeURLComponent
-        	
-        	GM_openInTab(URL);
+        var URL = "https://www.reddit.com/message/compose/?to=";
+    	
+    	URL += userName;
+    	
+    	URL += "&subject=";
+    	URL += PMsubject.encodeURIComponent;
+    	
+    	URL += "&message=";
+    	URL += PMmessage.encodeURIComponent;
+    	
+    	GM_openInTab(URL);
     }
 
     function onMessageBoxKeyUp(e)
