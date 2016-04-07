@@ -11,6 +11,7 @@
 // @grant   GM_getValue
 // @grant   GM_setValue
 // @grant   GM_addStyle
+// @grant   GM_openInTab
 // @grant   GM_xmlhttpRequest
 // ==/UserScript==
 (function() {
@@ -1314,12 +1315,12 @@
 
     function onMessageBoxSubmit()
     {
-        var message =  $("#robinMessageTextAlt").val();
+        var message = $("#robinMessageTextAlt").val();
         
         if (message.substr(0,1) == "!") {
-            var command = message.split(" ", 2)[1];
-            var value = $.trim(message.substr(command.length));
-            parrotCommand(command, value);
+            var pTextCommand = message.split(" ")[1];
+            var pTextValue = $.trim(message.substr(pTextCommand.length));
+            parrotCommand(pTextCommand, pTextValue);
         }
         
         updatePastMessageQueue();
@@ -1351,7 +1352,7 @@
             case "!msg":
             case "!m":
             case "!pm":
-            	var toUser = pTextValue.Split(" ",2)[1];
+            	var toUser = pTextValue.Split(" ")[1];
             	
                 var concatLen = 5 + toUser.length + 1;
         
