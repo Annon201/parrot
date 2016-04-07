@@ -1316,33 +1316,36 @@
     {
         var message =  $("#robinMessageTextAlt").val();
         
-        if (message.substr(0,1) != "!") {
-            updatePastMessageQueue();
-            $("#robinMessageTextAlt").val("");
-            return; /exit function if it doesnt start with '!'
+        if (message.substr(0,1) == "!") {
+            var command = message.split(" ",1);
+            var value = $.trim(message.substr(command.length));
+            parrotCommand(command, value)
         }
         
-        var command = message.split(" ",1);
-        var mes2 = $.trim(message.substr(command.length));
-        
+        updatePastMessageQueue();
+        $("#robinMessageText").val("");
+        $("#robinMessageTextAlt").val("");
+    }
+    
+    function parrotCommand(command, value)
+    {
         switch(command) {
         	case "!cipher":
         	case "!c":
-        	    var mes2 = $.trim(message.substr(8));
-                //var atWho = $.trim(mes2.substring(0,mes2.indexOf(" ")));
-                //mes2 = $.trim(mes2.substring(mes2.indexOf(" ")));
+                //var atWho = $.trim(value.substring(0,value.indexOf(" ")));
+                //value = $.trim(value.substring(value.indexOf(" ")));
     
                 var key = aesjs.util.convertStringToBytes(String(settings['cipherkey']));
-                var textBytes = aesjs.util.convertStringToBytes(mes2);
+                var textBytes = aesjs.util.convertStringToBytes(value);
                 var aesCtr = new aesjs.ModeOfOperation.ctr(key);
                 var encryptedBytes = aesCtr.encrypt(textBytes);
                 var result = encryptedBytes.map(function (x) {
                     return x.toString(36);
                 });
-                mes2=result.toString();
+                value=result.toString();
                 var chanName = selChanName();
-                 $("#robinMessageTextAlt").val(chanName + "<Cipher> "+mes2);
-                 $("#robinMessageText").val(chanName + "<Cipher> "+mes2);
+                 $("#robinMessageTextAlt").val(chanName + "<Cipher> "+value);
+                 $("#robinMessageText").val(chanName + "<Cipher> "+value);
                  break;
                  
             case "!msg":
@@ -1350,16 +1353,13 @@
             case "!pm":
                 var concatLen = 5 + toUser.length + 1;
         	
-            	var toUser = message.Split(" ")[1];
+            	var toUser = value.Split(" ")[1];
             	var msgSubject = "Message from Robin";
-            	var msgContent = message.slice(concatLen);
+            	var msgContent = value.concat(concatLen);
             	
             	redditPMUser(toUser, msgSubject, msgContent);
             	break;
         }
-        
-        updatePastMessageQueue();
-        $("#robinMessageTextAlt").val("");
     }
     
     function redditPMUser(userName, subject, message)
