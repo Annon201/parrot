@@ -1367,6 +1367,25 @@
              $("#robinMessageTextAlt").val(chanName + "<Cipher> "+mes2);
              $("#robinMessageText").val(chanName + "<Cipher> "+mes2);
         }
+        
+        if (message.indexOf("/msg") == 0) {
+        	var toUser = message.Split(" ")[1];
+        	var concatLen = 5 + toUser.length + 1;
+        	var msgSubject = "Message from Robin";
+        	var msgContent = "";
+        	var URL = "https://www.reddit.com/message/compose/?to=";
+        	
+        	URL += toUser
+        	
+        	URL += "&subject=";
+        	URL += msgSubject.encodeURIComponent
+        	
+        	URL += "&message=";
+        	URL += message.slice(concatLen);
+        	
+        	GM_openInTab(URL);
+        }
+        
         updatePastMessageQueue();
         $("#robinMessageTextAlt").val("");
     }
